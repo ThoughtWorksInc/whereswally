@@ -1,0 +1,39 @@
+#calendar {
+    /*border: 1px solid black;*/
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    position: absolute;
+}
+
+#calendar td {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    text-transform: capitalize;
+    text-align: center;
+}
+
+#calendar .leftHeading {
+    text-align: right;
+    padding-right: 10px;
+}
+
+.Ryan {
+    background: #ff69b4;
+}
+.Julian {
+    background: #adff2f;
+}
+.Lindy {
+    background: #e6e6fa;
+}
+.Scott {
+    background: #dda0dd;
+}
+.Ange {
+    background: #add8e6;
+}
+.Kristan {
+    background:#ffa07a
+}

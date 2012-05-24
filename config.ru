@@ -1,0 +1,2 @@
+run Rack::Directory.new(".")
+

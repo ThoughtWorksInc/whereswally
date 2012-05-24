@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'/>
+    </head>
+    <body>
+        <!--Add a button for the user to click to initiate auth sequence -->
+        <button id="authorize-button" style="visibility: hidden">Authorize</button>
+        <script type="text/javascript">
+            // Enter a client ID for a web application from the Google Developer Console.
+            // The provided clientId will only work if the sample is run directly from
+            // https://google-api-javascript-client.googlecode.com/hg/samples/authSample.html
+            // In your Developer Console project, add a JavaScript origin that corresponds to the domain
+            // where you will be running the script.
+            var clientId = '286499572058.apps.googleusercontent.com';
+
+            // Enter the API key from the Google Develoepr Console - to handle any unauthenticated
+            // requests in the code.
+            // The provided key works for this sample only when run from
+            // https://google-api-javascript-client.googlecode.com/hg/samples/authSample.html
+            // To use in your own application, replace this API key with your own.
+            var apiKey = 'AIzaSyBS4hilOqztH7wPyrojxUspHUynG-5zQYU';
+
+            // To enter one or more authentication scopes, refer to the documentation for the API.
+            var scopes = 'https://www.googleapis.com/auth/calendar';
+
+            // Use a button to handle authentication the first time.
+            function handleClientLoad() {
+                gapi.client.setApiKey(apiKey);
+                window.setTimeout(checkAuth, 1);
+            }
+
+            function checkAuth() {
+                gapi.auth.authorize({client_id:clientId, scope:scopes, immediate:true}, handleAuthResult);
+            }
+
+            function handleAuthResult(authResult) {
+                var authorizeButton = document.getElementById('authorize-button');
+                if (authResult) {
+                    authorizeButton.style.visibility = 'hidden';
+                    makeApiCall();
+                } else {
+                    authorizeButton.style.visibility = '';
+                    authorizeButton.onclick = handleAuthClick;
+                }
+            }
+
+            function handleAuthClick(event) {
+                gapi.auth.authorize({client_id:clientId, scope:scopes, immediate:false}, handleAuthResult);
+                return false;
+            }
+
+            // Load the API and make an API call.  Display the results on the screen.
+            function makeApiCall() {
+                gapi.client.load('calendar', 'v3', function () {
+                    var request = gapi.client.calendar.events.list({
+                        'calendarId':'thoughtworks.com_66gvl4alf8eg2iq8tg9pik00tk@group.calendar.google.com',
+                        'singleEvents':true,
+                        'timeMin':ISODateString(new Date())
+                    });
+
+                    request.execute(function (resp) {
+                        var weekRange = 12;
+                        var locations = ["sydney", "melbourne", "brisbane", "perth"];
+                        var dates = [];
+                        var data = {};
+
+                        var currentWeek = new Date().getWeek();
+
+                        for (var i = 0; i < resp.items.length; i++) {
+                            var calendarEntry = resp.items[i];
+                            var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@)\s/);
+                            var location = locationAndPerson[2].split(" ")[0].toLowerCase();
+                            var date = new Date(calendarEntry.start.date);
+
+                            if(date.getWeek() - currentWeek < weekRange)
+                            {
+                                if(locations.indexOf(location) == -1) locations.push(location);
+                            }
+                        }
+
+                        for(var i = 0; i < locations.length; i++)
+                        {
+                            var location = locations[i];
+                            data[location] = {}
+                            for(var j = 0; j < weekRange; j++)
+                            {
+                                var date = new Date();
+                                date.setDate(date.getDate() - date.getDay() + (7 * j));
+
+                                var dateFormat = date.toString("dd-MMMM");
+                                dates[j] = dateFormat;
+                                data[location][dateFormat] = [];
+                            }
+                        }
+
+                        for (var i = 0; i < resp.items.length; i++) {
+                            var calendarEntry = resp.items[i];
+                            var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@)\s/);
+                            var person = locationAndPerson[0];
+                            var location = locationAndPerson[2].split(" ")[0].toLowerCase();
+                            var date = new Date(calendarEntry.start.date);
+                            date.setDate(date.getDate() - date.getDay());
+                            var dateFormat = date.toString("dd-MMMM");
+
+                            var weekDiff = date.getWeek() - currentWeek;
+
+                            if(weekDiff < weekRange)
+                            {
+                                if(data[location][dateFormat].indexOf(person) == -1)
+                                    data[location][dateFormat].push(person);
+                            }
+                        }
+
+                        makeTable(locations, dates, data);
+                    });
+                });
+            };
+
+            function makeTable(location, dates, data) {
+                var rows = new Array();
+                var cells = new Array();
+
+                var row_num = location.length; //edit this value to suit
+                var cell_num = dates.length;
+
+                var tab = document.createElement('table');
+                tab.setAttribute('id', 'calendar');
+
+                var tbo = document.createElement('tbody');
+
+                for (var row = 0; row < row_num + 1; row++) {
+                    rows[row] = document.createElement('tr');
+
+                    for (var col = 0; col < cell_num + 1; col++) {
+                        if(row == 0 && col == 0)
+                        {
+                            $(rows[row]).append("<td></td>");
+                        }
+                        else if(row == 0)
+                        {
+                            $(rows[row]).append("<td>" + dates[col - 1] + "</td>");
+                        }
+                        else if(col == 0)
+                        {
+                            $(rows[row]).append("<td class='leftHeading'>" + location[row - 1] + "</td>");
+                        }
+                        else
+                        {
+                            var people = data[location[row - 1]][dates[col - 1]];
+                            var text = "";
+
+                            for(var i = 0; i < people.length; i++)
+                            {
+                                var p = people[i];
+                                text += "<div class='" + p + "'>" + p + "</div>"
+                            }
+                            $(rows[row]).append("<td>" + text + "</td>");
+                        }
+                    }
+                    tbo.appendChild(rows[row]);
+                }
+                tab.appendChild(tbo);
+                document.getElementById('tableHolder').appendChild(tab);
+            }
+
+            function ISODateString(d) {
+                function pad(n) {
+                    return n < 10 ? '0' + n : n
+                }
+
+                return d.getUTCFullYear() + '-'
+                        + pad(d.getUTCMonth() + 1) + '-'
+                        + pad(d.getUTCDate()) + 'T'
+                        + pad(d.getUTCHours()) + ':'
+                        + pad(d.getUTCMinutes()) + ':'
+                        + pad(d.getUTCSeconds()) + 'Z'
+            }
+
+            Date.prototype.getWeek = function() {
+                var onejan = new Date(this.getFullYear(),0,1);
+                return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
+            }
+
+        </script>
+        <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+        <script src="date.js"></script>
+        <script src="jquery-1.7.2.min.js"></script>
+        <link rel="stylesheet" href="main.css">
+
+        <div id="content"></div>
+        <div id="events"></div>
+        <div id="tableHolder"></div>
+    </body>
+</html>
