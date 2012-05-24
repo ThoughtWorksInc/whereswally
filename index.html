@@ -104,8 +104,14 @@
                             var location = locationAndPerson[2].split(" ")[0].toLowerCase();
                             var date = new Date(calendarEntry.start.date);
                             date.setDate(date.getDate() - date.getDay());
-                            var dateFormat = date.toString("dd-MMMM");
 
+                            if(dates.indexOf(dateFormat) != -1)
+                            {
+                                date = new Date(calendarEntry.end.date);
+                                date.setDate(date.getDate() - date.getDay());
+                            }
+
+                            var dateFormat = date.toString("dd-MMMM");
                             var weekDiff = date.getWeek() - currentWeek;
 
                             if(weekDiff < weekRange)
