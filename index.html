@@ -52,11 +52,14 @@
 
             // Load the API and make an API call.  Display the results on the screen.
             function makeApiCall() {
+                var minDate = new Date();
+                minDate.setDate(minDate.getDate() - minDate.getDay());
+
                 gapi.client.load('calendar', 'v3', function () {
                     var request = gapi.client.calendar.events.list({
                         'calendarId':'thoughtworks.com_66gvl4alf8eg2iq8tg9pik00tk@group.calendar.google.com',
                         'singleEvents':true,
-                        'timeMin':ISODateString(new Date())
+                        'timeMin':ISODateString(minDate)
                     });
 
                     request.execute(function (resp) {
