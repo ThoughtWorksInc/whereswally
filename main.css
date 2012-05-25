@@ -1,17 +1,111 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+        font-family: Helvetica, arial, sans-serif;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+:focus {
+    outline:none;
+}
+
+/* pre authorize */
+
+#pre-authorize {
+    width: 960px;
+    height: 640px;
+    background: transparent url('../images/bg.png') 0 0 no-repeat;
+}
+
+#authorize-info {
+    display:block;
+    visibility: visible;
+    text-indent: -9999em;
+}
+
+#authorize-button {
+    width:276px;
+    height: 80px;
+    background: transparent url('../images/authorize.png') 0 0 no-repeat;
+    cursor:pointer;
+    text-indent:-9999em;
+    position: absolute;
+    left:  170px;
+    top: 240px;
+}
+
+#authorize-button:hover, #authorize-button:focus {
+    background-position: 0 -80px;
+}
+
+/* post authorize */
+
 #calendar {
-    /*border: 1px solid black;*/
     width: 100%;
     height: 100%;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
     position: absolute;
 }
 
+#calendar th {
+    background: #333;
+    color:white;
+    padding: 13px 0;
+}
+
 #calendar td {
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+    height:1.5em;
+    border: 1px solid #ccc;
     text-transform: capitalize;
     text-align: center;
+    valign:middle;
+    background-color: #fff;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#fafafa));
+    background-image: -webkit-linear-gradient(top, #fff, #fafafa);
+    background-image:    -moz-linear-gradient(top, #fff, #fafafa);
+    background-image:     -ms-linear-gradient(top, #fff, #fafafa);
+    background-image:      -o-linear-gradient(top, #fff, #fafafa);
+    background-image:         linear-gradient(to bottom, #fff, #fafafa);
+
 }
 
 #calendar .leftHeading {
@@ -19,21 +113,8 @@
     padding-right: 10px;
 }
 
-.Ryan {
-    background: #ff69b4;
+.person {
+    padding: 10px 3px;
+    line-height:1.25;
 }
-.Julian {
-    background: #adff2f;
-}
-.Lindy {
-    background: #e6e6fa;
-}
-.Scott {
-    background: #dda0dd;
-}
-.Ange {
-    background: #add8e6;
-}
-.Kristan {
-    background:#ffa07a
-}
+

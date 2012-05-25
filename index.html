@@ -2,18 +2,24 @@
 <html>
     <head>
         <meta charset='utf-8'/>
+        <script src="ColorUtils-min.js"></script>
     </head>
     <body>
         <!--Add a button for the user to click to initiate auth sequence -->
-        <button id="authorize-button" style="visibility: hidden">Authorize</button>
+        <div id = "pre-authorize" style='display:none'>
+        <p id ="authorize-info" style='visibility:hidden'>
+        For this to work I&#8217;ll need access to your calendar&hellip;
+        </p>
+        <div id="authorize-button" style="visibility: hidden" tabindex="1">Authorize</div>
+        </div>
         <script type="text/javascript">
             // Enter a client ID for a web application from the Google Developer Console.
             // The provided clientId will only work if the sample is run directly from
             // https://google-api-javascript-client.googlecode.com/hg/samples/authSample.html
             // In your Developer Console project, add a JavaScript origin that corresponds to the domain
             // where you will be running the script.
-            var clientId = '286499572058.apps.googleusercontent.com';
-
+            //var clientId = '286499572058.apps.googleusercontent.com';
+            var clientId = '286499572058-c1mqnt8uumrpl84rnnib9d127uslcri5.apps.googleusercontent.com';
             // Enter the API key from the Google Develoepr Console - to handle any unauthenticated
             // requests in the code.
             // The provided key works for this sample only when run from
@@ -39,7 +45,10 @@
                 if (authResult) {
                     authorizeButton.style.visibility = 'hidden';
                     makeApiCall();
+                    $('#pre-authorize').hide();
+
                 } else {
+                    $('#pre-authorize').show();
                     authorizeButton.style.visibility = '';
                     authorizeButton.onclick = handleAuthClick;
                 }
@@ -144,11 +153,11 @@
                     for (var col = 0; col < cell_num + 1; col++) {
                         if(row == 0 && col == 0)
                         {
-                            $(rows[row]).append("<td></td>");
+                            $(rows[row]).append("<th></th>");
                         }
                         else if(row == 0)
                         {
-                            $(rows[row]).append("<td>" + dates[col - 1] + "</td>");
+                            $(rows[row]).append("<th>" + dates[col - 1] + "</th>");
                         }
                         else if(col == 0)
                         {
@@ -162,7 +171,7 @@
                             for(var i = 0; i < people.length; i++)
                             {
                                 var p = people[i];
-                                text += "<div class='" + p + "'>" + p + "</div>"
+                                text += "<div class='person " + p + "'>" + p + "</div>"
                             }
                             $(rows[row]).append("<td>" + text + "</td>");
                         }
@@ -171,6 +180,7 @@
                 }
                 tab.appendChild(tbo);
                 document.getElementById('tableHolder').appendChild(tab);
+                colorize();
             }
 
             function ISODateString(d) {
@@ -191,6 +201,28 @@
                 return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
             }
 
+            Array.prototype.uniq = function(){
+              var u = {}, a = [];
+              for(var i = 0, l = this.length; i < l; ++i){
+                if(this[i] in u) {
+                  continue;
+                }
+                a.push(this[i]);
+                u[this[i]] = 1;
+              }
+              return a;
+            }
+
+            function colorize() {
+                var names = $('.person').map(function() { return jQuery.trim(this.className.replace('person', '')); }).get().uniq();
+                var start =  new Hex('93FFB4');  
+                var rainbow = start.equal(names.length, true);
+                names.forEach(function(name, index) {
+                  console.log(rainbow[index]);
+                  $('.' + name).css({background: '#' + rainbow[index].hex});
+                });                    
+            }
+        
         </script>
         <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
         <script src="date.js"></script>
