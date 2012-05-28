@@ -33,6 +33,16 @@
             // Number of the weeks in the view
             var weekRange = 12;
 
+            // Global calendar data - TODO figure out if could be a closure var
+            var locations = ["sydney", "melbourne", "brisbane", "perth"];
+            var dates = [];
+            var data = {};
+            var calendars = [
+                'thoughtworks.com_66gvl4alf8eg2iq8tg9pik00tk@group.calendar.google.com',
+                'thoughtworks.com_vdmeshu1154sfkc6qocdcb6ma4@group.calendar.google.com'
+            ];
+            var currentCalendar = 0;
+
             // Use a button to handle authentication the first time.
             function handleClientLoad() {
                 gapi.client.setApiKey(apiKey);
@@ -64,92 +74,104 @@
 
             // Load the API and make an API call.  Display the results on the screen.
             function makeApiCall() {
+
+                gapi.client.load('calendar', 'v3', function () {
+                    buildCalendar();
+                });
+            }
+
+            function buildCalendar() {
+
                 var minDate = new Date();
                 minDate.setDate(minDate.getDate() - minDate.getDay());
                 var maxDate = new Date();
                 maxDate.setDate((maxDate.getDate() - maxDate.getDay()) +
-                                (weekRange+1)*7);
+                    (weekRange+1)*7);
 
-                gapi.client.load('calendar', 'v3', function () {
+                if (currentCalendar >= calendars.length) {
+                    // data is filled out - draw table
+                    makeTable(locations, dates, data);
+                    return;
+                }
                     
-                    var request = gapi.client.calendar.events.list({
-                        'calendarId':'thoughtworks.com_66gvl4alf8eg2iq8tg9pik00tk@group.calendar.google.com',
-                        //'calendarId':'thoughtworks.com_vdmeshu1154sfkc6qocdcb6ma4@group.calendar.google.com',
-                        'singleEvents':true,
-                        'timeMin':ISODateString(minDate),
-                        'timeMax':ISODateString(maxDate)
-                    });
+                // still more data to fetch for the currentCalendar
+                var request = gapi.client.calendar.events.list({
+                    'calendarId': calendars[currentCalendar],
+                    'singleEvents':true,
+                    'timeMin':ISODateString(minDate),
+                    'timeMax':ISODateString(maxDate)
+                });
 
-                    request.execute(function (resp) {
-                        var locations = ["sydney", "melbourne", "brisbane", "perth"];
-                        var dates = [];
-                        var data = {};
+                request.execute(function (resp) {
 
-                        var currentWeek = new Date().getWeek();
+                    var currentWeek = new Date().getWeek();
 
-                        for (var i = 0; i < resp.items.length; i++) {
-                            var calendarEntry = resp.items[i];
-                            var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
-                            if (!locationAndPerson) continue;
-                            var location = locationAndPerson[0];
-                            // TODO For now skipping the half-day calendar entries -
-                            // where dateTime is used instead of date.
-                            if (!calendarEntry.start.date) continue;
-                            var date = Date.fromGapiDateString(calendarEntry.start.date);
-                            if (date.getWeek() - currentWeek < weekRange)
-                            {
-                                if (locations.indexOf(location) == -1)  {
-                                    locations.push(location);
-                                }
+                    for (var i = 0; i < resp.items.length; i++) {
+                        var calendarEntry = resp.items[i];
+                        var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
+                        if (!locationAndPerson) continue;
+                        var location = locationAndPerson[0];
+                        // TODO For now skipping the half-day calendar entries -
+                        // where dateTime is used instead of date.
+                        if (!calendarEntry.start.date) continue;
+                        var date = Date.fromGapiDateString(calendarEntry.start.date);
+                        if (date.getWeek() - currentWeek < weekRange)
+                        {
+                            if (locations.indexOf(location) == -1)  {
+                                locations.push(location);
                             }
                         }
+                    }
 
-                        for (var i = 0; i < locations.length; i++)
-                        {
-                            var location = locations[i];
+                    for (var i = 0; i < locations.length; i++)
+                    {
+                        var location = locations[i];
+                        if (!data[location]) {
                             data[location] = {}
-                            for(var j = 0; j < weekRange; j++)
-                            {
-                                var date = new Date();
-                                date.setDate(date.getDate() - date.getDay() + (7 * j));
+                        }
+                        for(var j = 0; j < weekRange; j++)
+                        {
+                            var date = new Date();
+                            date.setDate(date.getDate() - date.getDay() + (7 * j));
 
-                                var dateFormat = date.toString("dd-MMMM");
-                                dates[j] = dateFormat;
+                            var dateFormat = date.toString("dd-MMMM");
+                            dates[j] = dateFormat;
+                            if (!data[location][dateFormat]) {
                                 data[location][dateFormat] = [];
                             }
                         }
+                    }
 
-                        for (var i = 0; i < resp.items.length; i++) {
-                            var calendarEntry = resp.items[i];
-                            var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
-                            if (!locationAndPerson) continue;
-                            var location = locationAndPerson[0];
-                            var person = locationAndPerson[1];
-                            if (!calendarEntry.start.date) continue;
-                            var date = Date.fromGapiDateString(calendarEntry.start.date);
+                    for (var i = 0; i < resp.items.length; i++) {
+                        var calendarEntry = resp.items[i];
+                        var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
+                        if (!locationAndPerson) continue;
+                        var location = locationAndPerson[0];
+                        var person = locationAndPerson[1];
+                        if (!calendarEntry.start.date) continue;
+                        var date = Date.fromGapiDateString(calendarEntry.start.date);
+                        date.setDate(date.getDate() - date.getDay());
+
+                        if(dates.indexOf(dateFormat) == -1)
+                        {
+                            date = Date.fromGapiDateString(calendarEntry.end.date);
                             date.setDate(date.getDate() - date.getDay());
-
-                            if(dates.indexOf(dateFormat) == -1)
-                            {
-                                date = Date.fromGapiDateString(calendarEntry.end.date);
-                                date.setDate(date.getDate() - date.getDay());
-                            }
-
-                            var dateFormat = date.toString("dd-MMMM");
-                            var weekDiff = date.getWeek() - currentWeek;
-
-                            if(weekDiff < weekRange && dates.indexOf(dateFormat) != -1)
-                            {
-                                if(data[location][dateFormat].indexOf(person) == -1)
-                                    data[location][dateFormat].push(
-                                        {person:person, link:calendarEntry.htmlLink});
-                            }
                         }
 
-                        makeTable(locations, dates, data);
-                    });
+                        var dateFormat = date.toString("dd-MMMM");
+                        var weekDiff = date.getWeek() - currentWeek;
+
+                        if(weekDiff < weekRange && dates.indexOf(dateFormat) != -1)
+                        {
+                            if(data[location][dateFormat].indexOf(person) == -1)
+                                data[location][dateFormat].push(
+                                    {person:person, link:calendarEntry.htmlLink});
+                        }
+                    }
+                    
+                    buildCalendar(++currentCalendar);
                 });
-            };
+            }
 
             function makeTable(location, dates, data) {
                 var rows = new Array();
@@ -259,13 +281,25 @@
             function getCalendarLocationAndPerson(calendarEntry) {
                 var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@|at)\s/);
                 if (locationAndPerson 
-                    && locationAndPerson.length >= 3) {
-                    return  [
-                                locationAndPerson[2].split(" ")[0].toLowerCase(), 
-                                locationAndPerson[0] 
-                            ];
+                        && locationAndPerson.length >= 3) {
+                    
+                    var location = locationAndPerson[2].split(" ")[0].toLowerCase();
+                    if (isLocation(location)) {
+                        return  [
+                                    location,
+                                    locationAndPerson[0] 
+                                ];
+                    }
                 }
                 return undefined;
+            }
+
+            // Since people use calendar entries to indicate on leave, at uni,
+            // Mgmnt, etc. we are filtering them out as locations. More to be
+            // found. Location is converted in lower-case already before being
+            // passed here.
+            function isLocation(location) {
+                return (['uni', 'mgmt', 'leave'].indexOf(location) == -1);
             }
         
         </script>
