@@ -30,6 +30,9 @@
             // To enter one or more authentication scopes, refer to the documentation for the API.
             var scopes = 'https://www.googleapis.com/auth/calendar';
 
+            // Number of the weeks in the view
+            var weekRange = 12;
+
             // Use a button to handle authentication the first time.
             function handleClientLoad() {
                 gapi.client.setApiKey(apiKey);
@@ -63,16 +66,21 @@
             function makeApiCall() {
                 var minDate = new Date();
                 minDate.setDate(minDate.getDate() - minDate.getDay());
+                var maxDate = new Date();
+                maxDate.setDate((maxDate.getDate() - maxDate.getDay()) +
+                                (weekRange+1)*7);
 
                 gapi.client.load('calendar', 'v3', function () {
+                    
                     var request = gapi.client.calendar.events.list({
                         'calendarId':'thoughtworks.com_66gvl4alf8eg2iq8tg9pik00tk@group.calendar.google.com',
+                        //'calendarId':'thoughtworks.com_vdmeshu1154sfkc6qocdcb6ma4@group.calendar.google.com',
                         'singleEvents':true,
-                        'timeMin':ISODateString(minDate)
+                        'timeMin':ISODateString(minDate),
+                        'timeMax':ISODateString(maxDate)
                     });
 
                     request.execute(function (resp) {
-                        var weekRange = 12;
                         var locations = ["sydney", "melbourne", "brisbane", "perth"];
                         var dates = [];
                         var data = {};
@@ -81,16 +89,22 @@
 
                         for (var i = 0; i < resp.items.length; i++) {
                             var calendarEntry = resp.items[i];
-                            var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@)\s/);
-                            var location = locationAndPerson[2].split(" ")[0].toLowerCase();
+                            var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
+                            if (!locationAndPerson) continue;
+                            var location = locationAndPerson[0];
+                            // TODO For now skipping the half-day calendar entries -
+                            // where dateTime is used instead of date.
+                            if (!calendarEntry.start.date) continue;
                             var date = Date.fromGapiDateString(calendarEntry.start.date);
-                            if(date.getWeek() - currentWeek < weekRange)
+                            if (date.getWeek() - currentWeek < weekRange)
                             {
-                                if(locations.indexOf(location) == -1) locations.push(location);
+                                if (locations.indexOf(location) == -1)  {
+                                    locations.push(location);
+                                }
                             }
                         }
 
-                        for(var i = 0; i < locations.length; i++)
+                        for (var i = 0; i < locations.length; i++)
                         {
                             var location = locations[i];
                             data[location] = {}
@@ -107,9 +121,11 @@
 
                         for (var i = 0; i < resp.items.length; i++) {
                             var calendarEntry = resp.items[i];
-                            var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@)\s/);
-                            var person = locationAndPerson[0];
-                            var location = locationAndPerson[2].split(" ")[0].toLowerCase();
+                            var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
+                            if (!locationAndPerson) continue;
+                            var location = locationAndPerson[0];
+                            var person = locationAndPerson[1];
+                            if (!calendarEntry.start.date) continue;
                             var date = Date.fromGapiDateString(calendarEntry.start.date);
                             date.setDate(date.getDate() - date.getDay());
 
@@ -232,6 +248,24 @@
                   console.log(rainbow[index]);
                   $('.' + name).css({background: '#' + rainbow[index].hex});
                 });                    
+            }
+
+            //
+            // Extracts calendar entries person and location from its summary
+            // This is relying on the patterns of entries seen in tw calendards
+            // so far - new patters may be discovered.
+            // Returns a list [location, person]
+            //
+            function getCalendarLocationAndPerson(calendarEntry) {
+                var locationAndPerson = calendarEntry.summary.split(/\s([oi]n|@|at)\s/);
+                if (locationAndPerson 
+                    && locationAndPerson.length >= 3) {
+                    return  [
+                                locationAndPerson[2].split(" ")[0].toLowerCase(), 
+                                locationAndPerson[0] 
+                            ];
+                }
+                return undefined;
             }
         
         </script>
