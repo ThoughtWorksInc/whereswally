@@ -50,70 +50,77 @@ Calendar.prototype = {
         var self = this;
 
         request.execute(function (resp) {
-
-            var currentWeek = new Date().getWeek();
-
-            for (var i = 0; i < resp.items.length; i++) {
-                var calendarEntry = resp.items[i];
-                var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
-                if (!locationAndPerson) continue;
-                var location = locationAndPerson[0];
-                // TODO For now skipping the half-day calendar entries -
-                // where dateTime is used instead of date.
-                if (!calendarEntry.start.date) continue;
-                var date = Date.fromGapiDateString(calendarEntry.start.date);
-                if (date.getWeek() - currentWeek < WEEK_RANGE)
-                {
-                    if (self.locations.indexOf(location) == -1)  {
-                        self.locations.push(location);
-                    }
-                }
-            }
-
-            for (i = 0; i < self.locations.length; i++)
+            if(resp.items)
             {
-                var found_location = self.locations[i];
-                if (!self.data[found_location]) {
-                    self.data[found_location] = {};
-                }
-                for(var j = 0; j < WEEK_RANGE; j++)
-                {
-                    var week = new Date();
-                    week.setDate(week.getDate() - week.getDay() + (7 * j));
+                var currentWeek = new Date().getWeek();
 
-                    var weekFormatted = week.toString(DATE_FORMAT);
-                    self.dates[j] = weekFormatted;
-                    if (!self.data[found_location][weekFormatted]) {
-                        self.data[found_location][weekFormatted] = [];
+                for (var i = 0; i < resp.items.length; i++) {
+                    var calendarEntry = resp.items[i];
+                    var locationAndPerson = getCalendarLocationAndPerson(calendarEntry);
+                    if (!locationAndPerson) continue;
+                    var location = locationAndPerson[0];
+                    // TODO For now skipping the half-day calendar entries -
+                    // where dateTime is used instead of date.
+                    if (!calendarEntry.start.date) continue;
+                    var date = Date.fromGapiDateString(calendarEntry.start.date);
+                    if (date.getWeek() - currentWeek < WEEK_RANGE)
+                    {
+                        if (self.locations.indexOf(location) == -1)  {
+                            self.locations.push(location);
+                        }
                     }
                 }
-            }
 
-            for (i = 0; i < resp.items.length; i++) {
-                var calendarEvent = resp.items[i];
-                var locationPerson = getCalendarLocationAndPerson(calendarEvent);
-                if (!locationPerson) continue;
-                var eventLocation = locationPerson[0];
-                var eventPerson = locationPerson[1];
-                if (!calendarEvent.start.date) continue;
-                var eventDate = Date.fromGapiDateString(calendarEvent.start.date);
-                eventDate.setDate(eventDate.getDate() - eventDate.getDay());
-                var eventWeek = eventDate.toString(DATE_FORMAT);
-
-                if(self.dates.indexOf(eventWeek) == -1)
+                for (i = 0; i < self.locations.length; i++)
                 {
-                    eventDate = Date.fromGapiDateString(calendarEvent.end.date);
-                    eventDate.setDate(eventDate.getDate() - eventDate.getDay());
-                    eventWeek = eventDate.toString(DATE_FORMAT);
+                    var found_location = self.locations[i];
+                    if (!self.data[found_location]) {
+                        self.data[found_location] = {};
+                    }
+                    for(var j = 0; j < WEEK_RANGE; j++)
+                    {
+                        var week = new Date();
+                        week.setDate(week.getDate() - week.getDay() + (7 * j));
+
+                        var weekFormatted = week.toString(DATE_FORMAT);
+                        self.dates[j] = weekFormatted;
+                        if (!self.data[found_location][weekFormatted]) {
+                            self.data[found_location][weekFormatted] = [];
+                        }
+                    }
                 }
 
-                var weekDiff = eventDate.getWeek() - currentWeek;
+                for (i = 0; i < resp.items.length; i++) {
+                    var calendarEvent = resp.items[i];
+                    var locationPerson = getCalendarLocationAndPerson(calendarEvent);
+                    if (!locationPerson) continue;
+                    var eventLocation = locationPerson[0];
+                    var eventPerson = locationPerson[1];
+                    if (!calendarEvent.start.date) continue;
+                    var eventDate = Date.fromGapiDateString(calendarEvent.start.date);
+                    eventDate.setDate(eventDate.getDate() - eventDate.getDay());
+                    var eventWeek = eventDate.toString(DATE_FORMAT);
 
-                if(weekDiff < WEEK_RANGE && self.dates.indexOf(eventWeek) != -1)
-                {
-                    if(self.data[eventLocation][eventWeek].indexOf(eventPerson) == -1)
-                        self.data[eventLocation][eventWeek].push(
-                            {person:eventPerson, link:calendarEvent.htmlLink});
+                    var startDate = Date.fromGapiDateString(calendarEvent.start.date).toString(DATE_FORMAT);
+                    var endDate = Date.fromGapiDateString(calendarEvent.end.date).toString(DATE_FORMAT);
+
+                    var displayString = eventPerson + " (" + eventLocation + "): " + startDate + " to " + endDate;
+
+                    if(self.dates.indexOf(eventWeek) == -1)
+                    {
+                        eventDate = Date.fromGapiDateString(calendarEvent.end.date);
+                        eventDate.setDate(eventDate.getDate() - eventDate.getDay());
+                        eventWeek = eventDate.toString(DATE_FORMAT);
+                    }
+
+                    var weekDiff = eventDate.getWeek() - currentWeek;
+
+                    if(weekDiff < WEEK_RANGE && self.dates.indexOf(eventWeek) != -1)
+                    {
+                        if(self.data[eventLocation][eventWeek].indexOf(eventPerson) == -1)
+                            self.data[eventLocation][eventWeek].push(
+                                {person:eventPerson, link:calendarEvent.htmlLink, displayString: displayString});
+                    }
                 }
             }
             

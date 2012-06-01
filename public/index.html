@@ -22,7 +22,7 @@
             // In your Developer Console project, add a JavaScript origin that corresponds to the domain
             // where you will be running the script.
             var clientId = '286499572058.apps.googleusercontent.com';
-            //var clientId = '286499572058-c1mqnt8uumrpl84rnnib9d127uslcri5.apps.googleusercontent.com';
+//            var clientId = '286499572058-c1mqnt8uumrpl84rnnib9d127uslcri5.apps.googleusercontent.com';
             // Enter the API key from the Google Develoepr Console - to handle any unauthenticated
             // requests in the code.
             // The provided key works for this sample only when run from
@@ -115,7 +115,8 @@
                             {
                                 var p = entries[i].person;
                                 var l = entries[i].link;
-                                text += "<div class='person " + p + "'>"
+                                var d = entries[i].displayString;
+                                text += "<div title='" + d + "' class='person " + p + "'>"
                                         + "<a href='" + l + "'>" 
                                         + p + "</a></div>";
                             }
@@ -147,7 +148,7 @@
                 var start =  new Hex('93FFB4');  
                 var rainbow = start.equal(names.length, true);
                 names.forEach(function(name, index) {
-                        console.log(rainbow[index]);
+//                        console.log(rainbow[index]);
                         $('.' + name).css({background: '#' + rainbow[index].hex});
                 });                    
             }
