@@ -90,6 +90,7 @@ table {
     background: #333;
     color:white;
     padding: 13px 0;
+    vertical-align: middle;
 }
 
 #calendar td {
