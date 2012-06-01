@@ -3,6 +3,7 @@ var WEEK_RANGE = 12;
 
 // Format to display calendar week dates in
 var DATE_FORMAT = "dd-MMMM";
+var DISPLAY_FORMAT = "ddd (d)";
 
 // Ctor - Initializes the google this.calendarIds to be merged.
 function Calendar(calendarIds) {
@@ -101,10 +102,11 @@ Calendar.prototype = {
                     eventDate.setDate(eventDate.getDate() - eventDate.getDay());
                     var eventWeek = eventDate.toString(DATE_FORMAT);
 
-                    var startDate = Date.fromGapiDateString(calendarEvent.start.date).toString(DATE_FORMAT);
-                    var endDate = Date.fromGapiDateString(calendarEvent.end.date).toString(DATE_FORMAT);
+                    var startDate = Date.fromGapiDateString(calendarEvent.start.date).toString(DISPLAY_FORMAT);
+                    var endDate = Date.fromGapiDateString(calendarEvent.end.date).toString(DISPLAY_FORMAT);
 
-                    var displayString = eventPerson + " (" + eventLocation + "): " + startDate + " to " + endDate;
+                    var displayString = eventPerson + " (" + eventLocation
+                        + ")\n\t" + startDate + " to " + endDate;
 
                     if(self.dates.indexOf(eventWeek) == -1)
                     {

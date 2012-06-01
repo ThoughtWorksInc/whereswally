@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset='utf-8'/>
-        <script src="js/ColorUtils-min.js"></script>
+        <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
         <!--Add a button for the user to click to initiate auth sequence -->
@@ -12,9 +12,10 @@
         </p>
         <div id="authorize-button" style="visibility: hidden" tabindex="1">Authorize</div>
         </div>
-        <script src="js/date.js"></script>
-        <script src="js/calendar.js"></script>
-        <script src="js/jquery-1.7.2.min.js"></script>
+        <div id="content"></div>
+        <div id="events"></div>
+        <div id="tableHolder"></div>
+
         <script type="text/javascript">
             // Enter a client ID for a web application from the Google Developer Console.
             // The provided clientId will only work if the sample is run directly from
@@ -117,7 +118,7 @@
                                 var l = entries[i].link;
                                 var d = entries[i].displayString;
                                 text += "<div title='" + d + "' class='person " + p + "'>"
-                                        + "<a href='" + l + "'>" 
+                                        + "<a href='" + l + "' target=_blank>"
                                         + p + "</a></div>";
                             }
                             $(rows[row]).append("<td>" + text + "</td>");
@@ -153,11 +154,10 @@
                 });                    
             }
         </script>
+        <script src="js/date.js"></script>
+        <script src="js/calendar.js"></script>
+        <script src="js/jquery-1.7.2.min.js"></script>
+        <script src="js/ColorUtils-min.js"></script>
         <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-        <link rel="stylesheet" href="css/main.css">
-
-        <div id="content"></div>
-        <div id="events"></div>
-        <div id="tableHolder"></div>
     </body>
 </html>
